@@ -155,7 +155,55 @@ st.sidebar.metric(
     "Queries Generated",
     len(st.session_state.history)
 )
+# -----------------------------------
+# Database Viewer
+# -----------------------------------
 
+st.sidebar.subheader("🛢️ Database Viewer")
+
+cursor.execute("""
+SELECT name
+FROM sqlite_master
+WHERE type='table'
+""")
+
+tables = cursor.fetchall()
+
+table_names = [table[0] for table in tables]
+
+selected_table = st.sidebar.selectbox(
+    "Select Table",
+    table_names
+)
+
+
+# -----------------------------------
+# Table Preview
+# -----------------------------------
+
+if selected_table:
+
+    st.subheader(f"👀 Preview: {selected_table}")
+
+    preview_query = f"""
+    SELECT *
+    FROM {selected_table}
+    LIMIT 5
+    """
+
+    cursor.execute(preview_query)
+
+    preview_data = cursor.fetchall()
+
+    column_names = [
+        description[0]
+        for description in cursor.description
+    ]
+
+    st.dataframe(
+        preview_data,
+        columns=column_names
+    )
 
 # -----------------------------------
 # Main Title
@@ -287,7 +335,29 @@ if sql_query:
             st.error(
                 f"❌ SQL Error: {str(e)}"
             )
+# -----------------------------------
+# SQL Verification Feature
+# -----------------------------------
 
+if sql_query:
+
+    if st.button("✅ Verify SQL"):
+
+        try:
+
+            cursor.execute(
+                f"EXPLAIN QUERY PLAN {sql_query}"
+            )
+
+            st.success(
+                "✅ SQL Query is valid."
+            )
+
+        except Exception as e:
+
+            st.error(
+                f"❌ Invalid SQL Query: {str(e)}"
+            )
 
 # -----------------------------------
 # Chat History
