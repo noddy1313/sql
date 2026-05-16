@@ -2,6 +2,7 @@
 import streamlit as st
 import os
 import sqlite3
+import pandas as pd
 
 # Import Google Generative AI library
 import google.generativeai as genai
@@ -200,10 +201,14 @@ if selected_table:
         for description in cursor.description
     ]
 
-    st.dataframe(
-        preview_data,
-        columns=column_names
-    )
+# Convert preview data to dataframe
+df = pd.DataFrame(
+    preview_data,
+    columns=column_names
+)
+
+# Show dataframe
+st.dataframe(df)
 
 # -----------------------------------
 # Main Title
