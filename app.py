@@ -453,28 +453,42 @@ if st.button("🗑️ Clear Everything"):
 
     try:
 
+        # Clear session state
         st.session_state.history.clear()
 
         st.session_state.sql_query = ""
 
-        # Delete all tables
-        cursor.execute("""
+        # Close current connection
+        conn.close()
+
+        # Create temporary connection
+        temp_conn = sqlite3.connect(DB_NAME)
+
+        temp_cursor = temp_conn.cursor()
+
+        # Fetch all tables
+        temp_cursor.execute("""
         SELECT name
         FROM sqlite_master
         WHERE type='table'
         """)
 
-        all_tables = cursor.fetchall()
+        all_tables = temp_cursor.fetchall()
 
+        # Drop all tables
         for table in all_tables:
 
             table_name = table[0]
 
-            cursor.execute(
+            temp_cursor.execute(
                 f"DROP TABLE IF EXISTS {table_name}"
             )
 
-        conn.commit()
+        # Save changes
+        temp_conn.commit()
+
+        # Close temp connection
+        temp_conn.close()
 
         st.success(
             "✅ History and all database tables cleared."
