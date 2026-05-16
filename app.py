@@ -332,29 +332,40 @@ if st.session_state.sql_query:
 
 if st.session_state.sql_query:
 
-    if st.button("🔍 Explain SQL"):
+    # Avoid explaining errors
+    if not st.session_state.sql_query.startswith("❌"):
 
-        with st.spinner("Explaining SQL query..."):
+        if st.button("🔍 Explain SQL"):
 
-            explanation_prompt = f"""
+            try:
+
+                with st.spinner(
+                    "Explaining SQL query..."
+                ):
+
+                    explanation_prompt = f"""
 Explain this SQL query in simple English:
 
 {st.session_state.sql_query}
 """
 
-            explanation = model.generate_content(
-                explanation_prompt
-            )
+                    explanation = model.generate_content(
+                        explanation_prompt
+                    )
 
-            st.subheader(
-                "🧠 SQL Explanation"
-            )
+                    st.subheader(
+                        "🧠 SQL Explanation"
+                    )
 
-            st.write(
-                explanation.text
-            )
+                    st.write(
+                        explanation.text
+                    )
 
+            except Exception as e:
 
+                st.error(
+                    "❌ Gemini API quota exceeded. Please wait or use another API key."
+                )
 # -----------------------------------
 # Execute SQL Query Feature
 # -----------------------------------
