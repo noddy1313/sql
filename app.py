@@ -163,7 +163,33 @@ st.sidebar.metric(
     "Queries Generated",
     len(st.session_state.history)
 )
+# -----------------------------------
+# Upload Database File
+# -----------------------------------
 
+uploaded_db = st.sidebar.file_uploader(
+    "📁 Upload SQLite Database",
+    type=["db", "sqlite", "sqlite3"]
+)
+
+# Use uploaded database
+if uploaded_db is not None:
+
+    # Save uploaded file temporarily
+    with open("uploaded_database.db", "wb") as f:
+        f.write(uploaded_db.read())
+
+    # Connect uploaded database
+    conn = sqlite3.connect(
+        "uploaded_database.db",
+        check_same_thread=False
+    )
+
+    cursor = conn.cursor()
+
+    st.sidebar.success(
+        "✅ Database uploaded successfully."
+    )
 
 # -----------------------------------
 # Database Viewer
