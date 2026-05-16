@@ -293,15 +293,38 @@ if sql_query:
 
         try:
 
+            # Execute query
             cursor.execute(sql_query)
 
-            results = cursor.fetchall()
+            # Save database changes
+            conn.commit()
 
-            st.subheader(
-                "📊 Query Results"
-            )
+            # Fetch results if SELECT query
+            if sql_query.strip().upper().startswith("SELECT"):
 
-            st.dataframe(results)
+                results = cursor.fetchall()
+
+                column_names = [
+                    description[0]
+                    for description in cursor.description
+                ]
+
+                import pandas as pd
+
+                df = pd.DataFrame(
+                    results,
+                    columns=column_names
+                )
+
+                st.subheader("📊 Query Results")
+
+                st.dataframe(df)
+
+            else:
+
+                st.success(
+                    "✅ Query executed successfully."
+                )
 
         except Exception as e:
 
