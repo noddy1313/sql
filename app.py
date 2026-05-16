@@ -2,7 +2,7 @@
 import streamlit as st
 import os
 import sqlite3
-import pandas as pd
+import pandas as pd 
 
 # Import Google Generative AI library
 import google.generativeai as genai
@@ -177,38 +177,6 @@ selected_table = st.sidebar.selectbox(
     table_names
 )
 
-
-# -----------------------------------
-# Table Preview
-# -----------------------------------
-
-if selected_table:
-
-    st.subheader(f"👀 Preview: {selected_table}")
-
-    preview_query = f"""
-    SELECT *
-    FROM {selected_table}
-    LIMIT 5
-    """
-
-    cursor.execute(preview_query)
-
-    preview_data = cursor.fetchall()
-
-    column_names = [
-        description[0]
-        for description in cursor.description
-    ]
-
-# Convert preview data to dataframe
-df = pd.DataFrame(
-    preview_data,
-    columns=column_names
-)
-
-# Show dataframe
-st.dataframe(df)
 
 # -----------------------------------
 # Main Title
@@ -393,3 +361,34 @@ if st.button("🗑️ Clear History"):
     st.success(
         "✅ History cleared successfully."
     )
+    # -----------------------------------
+# Table Preview
+# -----------------------------------
+
+if selected_table:
+
+    st.subheader(f"👀 Preview: {selected_table}")
+
+    preview_query = f"""
+    SELECT *
+    FROM {selected_table}
+    LIMIT 5
+    """
+
+    cursor.execute(preview_query)
+
+    preview_data = cursor.fetchall()
+
+    column_names = [
+        description[0]
+        for description in cursor.description
+    ]
+
+# Convert preview data to dataframe
+df = pd.DataFrame(
+    preview_data,
+    columns=column_names
+)
+
+# Show dataframe
+st.dataframe(df)
