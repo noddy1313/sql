@@ -522,6 +522,42 @@ if selected_table != "No Tables":
 
 
 # -----------------------------------
+# Download Selected Table
+# -----------------------------------
+
+if selected_table != "No Tables":
+
+    try:
+
+        download_query = f"""
+        SELECT *
+        FROM {selected_table}
+        """
+
+        download_df = pd.read_sql_query(
+            download_query,
+            conn
+        )
+
+        csv = download_df.to_csv(
+            index=False
+        ).encode("utf-8")
+
+        st.download_button(
+            label=f"📥 Download {selected_table} Table",
+            data=csv,
+            file_name=f"{selected_table}.csv",
+            mime="text/csv"
+        )
+
+    except Exception as e:
+
+        st.error(
+            f"❌ Download Error: {str(e)}"
+        )
+
+
+# -----------------------------------
 # Database Tables View
 # -----------------------------------
 
