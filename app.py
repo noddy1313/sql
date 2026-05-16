@@ -209,7 +209,9 @@ user_prompt = st.text_area(
 # Generate SQL Button
 # -----------------------------------
 
-sql_query = ""
+# Store SQL query in session state
+if "sql_query" not in st.session_state:
+    st.session_state.sql_query = ""
 
 if st.button("🚀 Generate SQL"):
 
@@ -217,32 +219,29 @@ if st.button("🚀 Generate SQL"):
 
         with st.spinner("Generating SQL query..."):
 
-            sql_query = generate_sql(
+            # Generate SQL
+            st.session_state.sql_query = generate_sql(
                 user_prompt
             )
 
         # Save History
         st.session_state.history.append({
             "question": user_prompt,
-            "sql": sql_query
+            "sql": st.session_state.sql_query
         })
 
         # Show SQL
         st.subheader("📄 Generated SQL Query")
 
         st.code(
-            sql_query,
+            st.session_state.sql_query,
             language="sql"
-        )
-
-        st.info(
-            "💡 Hover over SQL block to copy query."
         )
 
         # Download SQL
         st.download_button(
             label="📥 Download SQL",
-            data=sql_query,
+            data=st.session_state.sql_query,
             file_name="query.sql",
             mime="text/sql"
         )
