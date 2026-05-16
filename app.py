@@ -2,7 +2,7 @@
 # Explain SQL Feature
 # -----------------------------------
 
-if 'sql_query' in locals():
+if "sql_query" in locals():
 
     if st.button("🔍 Explain SQL"):
 
@@ -27,7 +27,7 @@ if 'sql_query' in locals():
 # Execute SQL Query Feature
 # -----------------------------------
 
-if 'sql_query' in locals():
+if "sql_query" in locals():
 
     if st.button("▶️ Execute Query"):
 
@@ -53,8 +53,10 @@ if 'sql_query' in locals():
 # Clear Chat History Button
 # -----------------------------------
 
+st.markdown("---")
+
 if st.button("🗑️ Clear History"):
 
-    st.session_state.history = []
+    st.session_state.history.clear()
 
-    st.success("History cleared successfully.")
+    st.success("✅ History cleared successfully.")
