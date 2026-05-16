@@ -81,11 +81,49 @@ model = genai.GenerativeModel(
 
 
 # -----------------------------------
+# Sidebar
+# -----------------------------------
+
+st.sidebar.title("⚙️ AI SQL Generator")
+
+st.sidebar.info(
+    "Generate SQL queries using Google Gemini AI."
+)
+
+st.sidebar.markdown("---")
+
+
+# -----------------------------------
+# Upload Database File
+# -----------------------------------
+
+uploaded_db = st.sidebar.file_uploader(
+    "📁 Upload SQLite Database",
+    type=["db", "sqlite", "sqlite3"]
+)
+
+# Default database
+DB_NAME = "database.db"
+
+# Save uploaded database
+if uploaded_db is not None:
+
+    DB_NAME = uploaded_db.name
+
+    with open(DB_NAME, "wb") as f:
+        f.write(uploaded_db.getbuffer())
+
+    st.sidebar.success(
+        "✅ Database uploaded successfully."
+    )
+
+
+# -----------------------------------
 # Database Connection
 # -----------------------------------
 
 conn = sqlite3.connect(
-    "database.db",
+    DB_NAME,
     check_same_thread=False
 )
 
@@ -93,7 +131,7 @@ cursor = conn.cursor()
 
 
 # -----------------------------------
-# Create Example Table
+# Create Default Table
 # -----------------------------------
 
 cursor.execute("""
@@ -119,77 +157,14 @@ if "sql_query" not in st.session_state:
 
 
 # -----------------------------------
-# Function to Generate SQL Query
+# Sidebar Metrics
 # -----------------------------------
-
-def generate_sql(prompt):
-
-    try:
-
-        full_prompt = f"""
-        You are an SQL expert.
-
-        Generate only SQL query.
-        Do not explain anything.
-
-        User Request:
-        {prompt}
-        """
-
-        response = model.generate_content(
-            full_prompt
-        )
-
-        return response.text.strip()
-
-    except Exception as e:
-
-        return f"❌ Error: {str(e)}"
-
-
-# -----------------------------------
-# Sidebar
-# -----------------------------------
-
-st.sidebar.title("⚙️ AI SQL Generator")
-
-st.sidebar.info(
-    "Generate SQL queries using Google Gemini AI."
-)
-
-st.sidebar.markdown("---")
 
 st.sidebar.metric(
     "Queries Generated",
     len(st.session_state.history)
 )
-# -----------------------------------
-# Upload Database File
-# -----------------------------------
 
-uploaded_db = st.sidebar.file_uploader(
-    "📁 Upload SQLite Database",
-    type=["db", "sqlite", "sqlite3"]
-)
-
-# Use uploaded database
-if uploaded_db is not None:
-
-    # Save uploaded file temporarily
-    with open("uploaded_database.db", "wb") as f:
-        f.write(uploaded_db.read())
-
-    # Connect uploaded database
-    conn = sqlite3.connect(
-        "uploaded_database.db",
-        check_same_thread=False
-    )
-
-    cursor = conn.cursor()
-
-    st.sidebar.success(
-        "✅ Database uploaded successfully."
-    )
 
 # -----------------------------------
 # Database Viewer
@@ -208,9 +183,50 @@ tables = cursor.fetchall()
 table_names = [table[0] for table in tables]
 
 selected_table = st.sidebar.selectbox(
-    "Select Table",
+    "📋 Select Table",
     table_names
 )
+
+
+# -----------------------------------
+# Function to Generate SQL Query
+# -----------------------------------
+
+def generate_sql(prompt):
+
+    try:
+
+        full_prompt = f"""
+You are an SQL generator.
+
+Rules:
+1. Return ONLY SQL query
+2. No explanation
+3. No markdown
+4. No comments
+5. No extra text
+6. Output must start directly with SQL keyword
+
+User Request:
+{prompt}
+"""
+
+        response = model.generate_content(
+            full_prompt
+        )
+
+        sql = response.text.strip()
+
+        # Remove markdown formatting
+        sql = sql.replace("```sql", "")
+        sql = sql.replace("```", "")
+        sql = sql.strip()
+
+        return sql
+
+    except Exception as e:
+
+        return f"❌ Error: {str(e)}"
 
 
 # -----------------------------------
@@ -236,7 +252,7 @@ st.markdown(
 
 user_prompt = st.text_area(
     "Enter your database question:",
-    placeholder="Example: Show all employees with salary greater than 50000"
+    placeholder="Example: Find employee with second highest salary"
 )
 
 
@@ -251,9 +267,8 @@ if st.button("🚀 Generate SQL"):
         with st.spinner("Generating SQL query..."):
 
             st.session_state.sql_query = generate_sql(
-    user_prompt
-)
-            
+                user_prompt
+            )
 
         # Save History
         st.session_state.history.append({
@@ -426,7 +441,7 @@ if st.button("🗑️ Clear History"):
 
 
 # -----------------------------------
-# Table Preview
+# Database Preview
 # -----------------------------------
 
 st.markdown("---")
@@ -443,24 +458,57 @@ if selected_table:
         LIMIT 5
         """
 
-        cursor.execute(preview_query)
-
-        preview_data = cursor.fetchall()
-
-        column_names = [
-            description[0]
-            for description in cursor.description
-        ]
-
-        df = pd.DataFrame(
-            preview_data,
-            columns=column_names
+        preview_df = pd.read_sql_query(
+            preview_query,
+            conn
         )
 
-        st.dataframe(df)
+        st.dataframe(preview_df)
 
     except Exception as e:
 
         st.error(
             f"❌ Error loading preview: {str(e)}"
         )
+
+
+# -----------------------------------
+# Database Tables Webpage View
+# -----------------------------------
+
+st.markdown("---")
+
+st.header("🗂️ Database Tables")
+
+if table_names:
+
+    for table in table_names:
+
+        st.subheader(f"📄 {table}")
+
+        try:
+
+            query = f"""
+            SELECT *
+            FROM {table}
+            LIMIT 10
+            """
+
+            table_df = pd.read_sql_query(
+                query,
+                conn
+            )
+
+            st.dataframe(table_df)
+
+        except Exception as e:
+
+            st.error(
+                f"❌ Error loading {table}: {str(e)}"
+            )
+
+else:
+
+    st.warning(
+        "⚠️ No tables found in database."
+    )
