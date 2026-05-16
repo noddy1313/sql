@@ -332,40 +332,27 @@ if st.session_state.sql_query:
 
 if st.session_state.sql_query:
 
-    # Avoid explaining errors
-    if not st.session_state.sql_query.startswith("❌"):
+    if st.button("🔍 Explain SQL"):
 
-        if st.button("🔍 Explain SQL"):
+        with st.spinner("Explaining SQL query..."):
 
-            try:
-
-                with st.spinner(
-                    "Explaining SQL query..."
-                ):
-
-                    explanation_prompt = f"""
+            explanation_prompt = f"""
 Explain this SQL query in simple English:
 
 {st.session_state.sql_query}
 """
 
-                    explanation = model.generate_content(
-                        explanation_prompt
-                    )
+            explanation = model.generate_content(
+                explanation_prompt
+            )
 
-                    st.subheader(
-                        "🧠 SQL Explanation"
-                    )
+            st.subheader(
+                "🧠 SQL Explanation"
+            )
 
-                    st.write(
-                        explanation.text
-                    )
-
-            except Exception as e:
-
-                st.error(
-                    "❌ Gemini API quota exceeded. Please wait or use another API key."
-                )
+            st.write(
+                explanation.text
+            )
 
 
 # -----------------------------------
@@ -466,31 +453,20 @@ if st.button("🗑️ Clear Everything"):
 
     try:
 
+        # Clear session state
         st.session_state.history.clear()
 
         st.session_state.sql_query = ""
 
-        try:
-            cursor.close()
-        except:
-            pass
+        # Close current connection
+        conn.close()
 
-        try:
-            conn.close()
-        except:
-            pass
-
-        temp_conn = sqlite3.connect(
-            DB_NAME,
-            timeout=10
-        )
+        # Create temporary connection
+        temp_conn = sqlite3.connect(DB_NAME)
 
         temp_cursor = temp_conn.cursor()
 
-        temp_cursor.execute(
-            "PRAGMA foreign_keys = OFF;"
-        )
-
+        # Fetch all tables
         temp_cursor.execute("""
         SELECT name
         FROM sqlite_master
@@ -499,24 +475,23 @@ if st.button("🗑️ Clear Everything"):
 
         all_tables = temp_cursor.fetchall()
 
+        # Drop all tables
         for table in all_tables:
 
             table_name = table[0]
 
-            if table_name != "sqlite_sequence":
+            temp_cursor.execute(
+                f"DROP TABLE IF EXISTS {table_name}"
+            )
 
-                temp_cursor.execute(
-                    f'DROP TABLE IF EXISTS "{table_name}"'
-                )
-
+        # Save changes
         temp_conn.commit()
 
-        temp_cursor.execute("VACUUM")
-
+        # Close temp connection
         temp_conn.close()
 
         st.success(
-            "✅ Database cleared successfully."
+            "✅ History and all database tables cleared."
         )
 
         st.rerun()
