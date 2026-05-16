@@ -41,16 +41,7 @@ textarea {
 
 /* Button styling */
 .stButton > button {
-    background: linear-gradient(
-        90deg,
-        rgb(255,0,0),
-        rgb(255,127,0),
-        rgb(255,255,0),
-        rgb(0,255,0),
-        rgb(0,0,255),
-        rgb(75,0,130),
-        rgb(148,0,211)
-    );
+    background-color: #4CAF50;
     color: white;
     border-radius: 12px;
     height: 3em;
@@ -62,7 +53,7 @@ textarea {
 
 /* Button hover */
 .stButton > button:hover {
-    opacity: 0.9;
+    background-color: #45a049;
 }
 
 /* Sidebar */
@@ -177,9 +168,26 @@ WHERE type='table'
 
 tables = cursor.fetchall()
 
-table_names = [table[0] for table in tables]
+# Refresh valid table names only
+table_names = []
 
-# Avoid empty list error
+for table in tables:
+
+    table_name = table[0]
+
+    try:
+
+        cursor.execute(
+            f"SELECT 1 FROM {table_name} LIMIT 1"
+        )
+
+        table_names.append(table_name)
+
+    except:
+
+        pass
+
+# Avoid empty selectbox error
 if not table_names:
     table_names = ["No Tables"]
 
@@ -230,26 +238,15 @@ User Request:
 
 
 # -----------------------------------
-# RGB Gradient Main Title
+# Main Title
 # -----------------------------------
 
 st.markdown("""
 <h1 style='
 text-align: center;
+color: #4CAF50;
 font-size: 55px;
 font-weight: bold;
-background: linear-gradient(
-90deg,
-rgb(255,0,0),
-rgb(255,127,0),
-rgb(255,255,0),
-rgb(0,255,0),
-rgb(0,0,255),
-rgb(75,0,130),
-rgb(148,0,211)
-);
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
 '>
 🤖 AI SQL Query Generator
 </h1>
@@ -481,6 +478,8 @@ if st.button("🗑️ Clear Everything"):
         st.success(
             "✅ History and all database tables cleared."
         )
+
+        st.rerun()
 
     except Exception as e:
 
