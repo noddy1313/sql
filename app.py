@@ -2,7 +2,7 @@
 import streamlit as st
 import os
 import sqlite3
-import pandas as pd 
+import pandas as pd
 
 # Import Google Generative AI library
 import google.generativeai as genai
@@ -84,7 +84,11 @@ model = genai.GenerativeModel(
 # Database Connection
 # -----------------------------------
 
-conn = sqlite3.connect("database.db")
+conn = sqlite3.connect(
+    "database.db",
+    check_same_thread=False
+)
+
 cursor = conn.cursor()
 
 
@@ -104,11 +108,14 @@ conn.commit()
 
 
 # -----------------------------------
-# Chat History
+# Session State
 # -----------------------------------
 
 if "history" not in st.session_state:
     st.session_state.history = []
+
+if "sql_query" not in st.session_state:
+    st.session_state.sql_query = ""
 
 
 # -----------------------------------
@@ -156,6 +163,8 @@ st.sidebar.metric(
     "Queries Generated",
     len(st.session_state.history)
 )
+
+
 # -----------------------------------
 # Database Viewer
 # -----------------------------------
@@ -209,17 +218,12 @@ user_prompt = st.text_area(
 # Generate SQL Button
 # -----------------------------------
 
-# Store SQL query in session state
-if "sql_query" not in st.session_state:
-    st.session_state.sql_query = ""
-
 if st.button("🚀 Generate SQL"):
 
     if user_prompt.strip():
 
         with st.spinner("Generating SQL query..."):
 
-            # Generate SQL
             st.session_state.sql_query = generate_sql(
                 user_prompt
             )
@@ -230,22 +234,6 @@ if st.button("🚀 Generate SQL"):
             "sql": st.session_state.sql_query
         })
 
-        # Show SQL
-        st.subheader("📄 Generated SQL Query")
-
-        st.code(
-            st.session_state.sql_query,
-            language="sql"
-        )
-
-        # Download SQL
-        st.download_button(
-            label="📥 Download SQL",
-            data=st.session_state.sql_query,
-            file_name="query.sql",
-            mime="text/sql"
-        )
-
     else:
 
         st.warning(
@@ -254,10 +242,32 @@ if st.button("🚀 Generate SQL"):
 
 
 # -----------------------------------
+# Show Generated SQL
+# -----------------------------------
+
+if st.session_state.sql_query:
+
+    st.subheader("📄 Generated SQL Query")
+
+    st.code(
+        st.session_state.sql_query,
+        language="sql"
+    )
+
+    # Download SQL
+    st.download_button(
+        label="📥 Download SQL",
+        data=st.session_state.sql_query,
+        file_name="query.sql",
+        mime="text/sql"
+    )
+
+
+# -----------------------------------
 # Explain SQL Feature
 # -----------------------------------
 
-if sql_query:
+if st.session_state.sql_query:
 
     if st.button("🔍 Explain SQL"):
 
@@ -266,7 +276,7 @@ if sql_query:
             explanation_prompt = f"""
 Explain this SQL query in simple English:
 
-{sql_query}
+{st.session_state.sql_query}
 """
 
             explanation = model.generate_content(
@@ -286,20 +296,22 @@ Explain this SQL query in simple English:
 # Execute SQL Query Feature
 # -----------------------------------
 
-if sql_query:
+if st.session_state.sql_query:
 
     if st.button("▶️ Execute Query"):
 
         try:
 
             # Execute query
-            cursor.execute(sql_query)
+            cursor.execute(
+                st.session_state.sql_query
+            )
 
             # Save database changes
             conn.commit()
 
-            # Fetch results if SELECT query
-            if sql_query.strip().upper().startswith("SELECT"):
+            # SELECT query
+            if st.session_state.sql_query.strip().upper().startswith("SELECT"):
 
                 results = cursor.fetchall()
 
@@ -307,8 +319,6 @@ if sql_query:
                     description[0]
                     for description in cursor.description
                 ]
-
-                import pandas as pd
 
                 df = pd.DataFrame(
                     results,
@@ -330,18 +340,20 @@ if sql_query:
             st.error(
                 f"❌ SQL Error: {str(e)}"
             )
+
+
 # -----------------------------------
 # SQL Verification Feature
 # -----------------------------------
 
-if sql_query:
+if st.session_state.sql_query:
 
     if st.button("✅ Verify SQL"):
 
         try:
 
             cursor.execute(
-                f"EXPLAIN QUERY PLAN {sql_query}"
+                f"EXPLAIN QUERY PLAN {st.session_state.sql_query}"
             )
 
             st.success(
@@ -353,6 +365,7 @@ if sql_query:
             st.error(
                 f"❌ Invalid SQL Query: {str(e)}"
             )
+
 
 # -----------------------------------
 # Chat History
@@ -383,34 +396,44 @@ if st.button("🗑️ Clear History"):
     st.success(
         "✅ History cleared successfully."
     )
-    # -----------------------------------
+
+
+# -----------------------------------
 # Table Preview
 # -----------------------------------
 
+st.markdown("---")
+
+st.subheader("🛢️ Database Preview")
+
 if selected_table:
 
-    st.subheader(f"👀 Preview: {selected_table}")
+    try:
 
-    preview_query = f"""
-    SELECT *
-    FROM {selected_table}
-    LIMIT 5
-    """
+        preview_query = f"""
+        SELECT *
+        FROM {selected_table}
+        LIMIT 5
+        """
 
-    cursor.execute(preview_query)
+        cursor.execute(preview_query)
 
-    preview_data = cursor.fetchall()
+        preview_data = cursor.fetchall()
 
-    column_names = [
-        description[0]
-        for description in cursor.description
-    ]
+        column_names = [
+            description[0]
+            for description in cursor.description
+        ]
 
-# Convert preview data to dataframe
-df = pd.DataFrame(
-    preview_data,
-    columns=column_names
-)
+        df = pd.DataFrame(
+            preview_data,
+            columns=column_names
+        )
 
-# Show dataframe
-st.dataframe(df)
+        st.dataframe(df)
+
+    except Exception as e:
+
+        st.error(
+            f"❌ Error loading preview: {str(e)}"
+        )
