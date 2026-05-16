@@ -214,6 +214,7 @@ Rules:
 3. No markdown
 4. No comments
 5. No extra text
+6. Always use CREATE TABLE IF NOT EXISTS instead of CREATE TABLE
 
 User Request:
 {prompt}
