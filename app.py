@@ -13,8 +13,52 @@ import google.generativeai as genai
 
 st.set_page_config(
     page_title="AI SQL Query Generator",
-    page_icon="🤖"
+    page_icon="🤖",
+    layout="centered"
 )
+
+
+# -----------------------------------
+# Custom UI Design
+# -----------------------------------
+
+st.markdown("""
+<style>
+
+/* Main background */
+.stApp {
+    background-color: #0E1117;
+    color: white;
+}
+
+/* Text area */
+textarea {
+    border-radius: 10px !important;
+}
+
+/* Button styling */
+.stButton > button {
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 10px;
+    height: 3em;
+    width: 100%;
+    font-size: 16px;
+    border: none;
+}
+
+/* Button hover */
+.stButton > button:hover {
+    background-color: #45a049;
+}
+
+/* Code block */
+code {
+    font-size: 15px;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
 # -----------------------------------
@@ -82,11 +126,39 @@ def generate_sql(prompt):
 
 
 # -----------------------------------
+# Sidebar
+# -----------------------------------
+
+st.sidebar.title("⚙️ AI SQL Generator")
+
+st.sidebar.info(
+    "Generate SQL queries using Google Gemini AI."
+)
+
+st.sidebar.markdown("---")
+
+st.sidebar.metric(
+    "Queries Generated",
+    len(st.session_state.history)
+)
+
+
+# -----------------------------------
 # Streamlit App UI
 # -----------------------------------
 
-# App title
-st.title("🤖 AI SQL Query Generator")
+# Gradient title
+st.markdown("""
+<h1 style='text-align: center;
+color: #4CAF50;'>
+🤖 AI SQL Query Generator
+</h1>
+""", unsafe_allow_html=True)
+
+st.markdown(
+    "<p style='text-align:center;'>Convert natural language into SQL queries instantly 🚀</p>",
+    unsafe_allow_html=True
+)
 
 
 # User input box
@@ -97,7 +169,7 @@ user_prompt = st.text_area(
 
 
 # Generate button
-if st.button("Generate SQL"):
+if st.button("🚀 Generate SQL"):
 
     # Check if input is empty
     if user_prompt.strip():
@@ -143,6 +215,6 @@ st.subheader("🧠 Chat History")
 
 for item in reversed(st.session_state.history):
 
-    st.markdown(f"**Question:** {item['question']}")
+    st.markdown(f"### ❓ {item['question']}")
 
     st.code(item['sql'], language="sql")
