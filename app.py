@@ -250,7 +250,9 @@ if st.button("🚀 Generate SQL"):
 
         with st.spinner("Generating SQL query..."):
 
-            st.session_state.sql_query = user_prompt
+            st.session_state.sql_query = generate_sql(
+    user_prompt
+)
             
 
         # Save History
