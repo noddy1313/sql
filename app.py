@@ -515,16 +515,30 @@ if st.button("🗑️ Clear Everything"):
 
 
 # -----------------------------------
-# Database Preview
+# Database Preview / Query Output
 # -----------------------------------
 
 st.markdown("---")
 
 st.subheader("🛢️ Database Preview")
 
-if selected_table != "No Tables":
+try:
 
-    try:
+    # If SELECT query executed
+    if (
+        st.session_state.sql_query
+        and st.session_state.sql_query.strip().upper().startswith("SELECT")
+    ):
+
+        query_df = pd.read_sql_query(
+            st.session_state.sql_query,
+            conn
+        )
+
+        st.dataframe(query_df)
+
+    # Otherwise show selected table preview
+    elif selected_table != "No Tables":
 
         preview_query = f"""
         SELECT *
@@ -539,12 +553,11 @@ if selected_table != "No Tables":
 
         st.dataframe(preview_df)
 
-    except Exception as e:
+except Exception as e:
 
-        st.error(
-            f"❌ Error loading preview: {str(e)}"
-        )
-
+    st.error(
+        f"❌ Error loading preview: {str(e)}"
+    )
 
 # -----------------------------------
 # Download Selected Table
