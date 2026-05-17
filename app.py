@@ -196,14 +196,21 @@ selected_table = st.sidebar.selectbox(
     table_names
 )
 
-
-# -----------------------------------
-# Function to Generate SQL Query
-# -----------------------------------
-
 def generate_sql(prompt):
 
     try:
+
+        # Get existing tables
+        cursor.execute("""
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        """)
+
+        existing_tables = [
+            table[0]
+            for table in cursor.fetchall()
+        ]
 
         full_prompt = f"""
 You are an SQL generator.
@@ -214,7 +221,14 @@ Rules:
 3. No markdown
 4. No comments
 5. No extra text
-6. Always use CREATE TABLE IF NOT EXISTS instead of CREATE TABLE
+
+Database Tables:
+{existing_tables}
+
+Instructions:
+- If required table already exists, DO NOT generate CREATE TABLE query.
+- Generate only the required SQL query.
+- Generate CREATE TABLE only if no suitable table exists.
 
 User Request:
 {prompt}
@@ -236,8 +250,6 @@ User Request:
     except Exception as e:
 
         return f"❌ Error: {str(e)}"
-
-
 # -----------------------------------
 # Main Title
 # -----------------------------------
