@@ -459,7 +459,7 @@ st.subheader("🧠 Chat History")
 for item in reversed(st.session_state.history):
 
     st.markdown(
-        f"### ❓ {item['question']}"
+       f"### 💬 {item['question']}"
     )
 
     st.code(
