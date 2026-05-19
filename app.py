@@ -450,22 +450,6 @@ if st.session_state.sql_query:
             )
 
 
-# -----------------------------------
-# Chat History
-# -----------------------------------
-
-st.subheader("🧠 Chat History")
-
-for item in reversed(st.session_state.history):
-
-    st.markdown(
-       f"### 💬 {item['question']}"
-    )
-
-    st.code(
-        item['sql'],
-        language="sql"
-    )
 
 
 # -----------------------------------
@@ -646,4 +630,20 @@ else:
 
     st.warning(
         "⚠️ No tables found in database."
+    )
+    # -----------------------------------
+# Chat History
+# -----------------------------------
+
+st.subheader("🧠 Chat History")
+
+for item in reversed(st.session_state.history):
+
+    st.markdown(
+       f"### 💬 {item['question']}"
+    )
+
+    st.code(
+        item['sql'],
+        language="sql"
     )
