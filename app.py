@@ -452,62 +452,7 @@ if st.session_state.sql_query:
 
 
 
-# -----------------------------------
-# Clear Everything
-# -----------------------------------
 
-if st.button("🗑️ Clear Everything"):
-
-    try:
-
-        # Clear session state
-        st.session_state.history.clear()
-
-        st.session_state.sql_query = ""
-
-        # Close current connection
-        conn.close()
-
-        # Create temporary connection
-        temp_conn = sqlite3.connect(DB_NAME)
-
-        temp_cursor = temp_conn.cursor()
-
-        # Fetch all tables
-        temp_cursor.execute("""
-        SELECT name
-        FROM sqlite_master
-        WHERE type='table'
-        """)
-
-        all_tables = temp_cursor.fetchall()
-
-        # Drop all tables
-        for table in all_tables:
-
-            table_name = table[0]
-
-            temp_cursor.execute(
-                f"DROP TABLE IF EXISTS {table_name}"
-            )
-
-        # Save changes
-        temp_conn.commit()
-
-        # Close temp connection
-        temp_conn.close()
-
-        st.success(
-            "✅ History and all database tables cleared."
-        )
-
-        st.rerun()
-
-    except Exception as e:
-
-        st.error(
-            f"❌ Error clearing database: {str(e)}"
-        )
 
 
 # -----------------------------------
@@ -647,3 +592,59 @@ for item in reversed(st.session_state.history):
         item['sql'],
         language="sql"
     )
+# -----------------------------------
+# Clear Everything
+# -----------------------------------
+
+if st.button("🗑️ Clear Everything"):
+
+    try:
+
+        # Clear session state
+        st.session_state.history.clear()
+
+        st.session_state.sql_query = ""
+
+        # Close current connection
+        conn.close()
+
+        # Create temporary connection
+        temp_conn = sqlite3.connect(DB_NAME)
+
+        temp_cursor = temp_conn.cursor()
+
+        # Fetch all tables
+        temp_cursor.execute("""
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        """)
+
+        all_tables = temp_cursor.fetchall()
+
+        # Drop all tables
+        for table in all_tables:
+
+            table_name = table[0]
+
+            temp_cursor.execute(
+                f"DROP TABLE IF EXISTS {table_name}"
+            )
+
+        # Save changes
+        temp_conn.commit()
+
+        # Close temp connection
+        temp_conn.close()
+
+        st.success(
+            "✅ History and all database tables cleared."
+        )
+
+        st.rerun()
+
+    except Exception as e:
+
+        st.error(
+            f"❌ Error clearing database: {str(e)}"
+        )
