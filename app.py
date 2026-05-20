@@ -53,7 +53,6 @@ if theme_mode == "Dark":
 
     .stApp {
         background-color: #0E1117;
-        color: white;
     }
 
     textarea {
@@ -91,7 +90,6 @@ else:
 
     .stApp {
         background-color: white;
-        color: black;
     }
 
     textarea {
@@ -272,6 +270,10 @@ Rules:
 Database Tables:
 {existing_tables}
 
+Instructions:
+- If required table already exists, DO NOT generate CREATE TABLE query.
+- Generate only the required SQL query.
+
 User Request:
 {prompt}
 """
@@ -300,9 +302,9 @@ User Request:
 st.markdown("""
 <h1 style='
 text-align: center;
-color: #4CAF50;
 font-size: 55px;
 font-weight: bold;
+color: #4CAF50;
 '>
 🤖 AI SQL Query Generator
 </h1>
