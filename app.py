@@ -449,12 +449,6 @@ if st.session_state.sql_query:
                 f"❌ Invalid SQL Query: {str(e)}"
             )
 
-
-
-
-
-
-
 # -----------------------------------
 # Database Preview / Query Output
 # -----------------------------------
