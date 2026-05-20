@@ -20,105 +20,49 @@ st.set_page_config(
 
 
 # -----------------------------------
-# Sidebar
+# Custom UI Design
 # -----------------------------------
 
-st.sidebar.title("⚙️ AI SQL Generator")
+st.markdown("""
+<style>
 
-st.sidebar.info(
-    "Generate SQL queries using Gemini AI 🚀"
-)
+/* Main background */
+.stApp {
+    background-color: #0E1117;
+    color: white;
+}
 
-st.sidebar.markdown("---")
+/* Text area */
+textarea {
+    border-radius: 10px !important;
+    background-color: #1E1E1E !important;
+    color: white !important;
+}
 
+/* Button styling */
+.stButton > button {
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 12px;
+    height: 3em;
+    width: 100%;
+    font-size: 16px;
+    border: none;
+    font-weight: bold;
+}
 
-# -----------------------------------
-# Theme Selector
-# -----------------------------------
+/* Button hover */
+.stButton > button:hover {
+    background-color: #45a049;
+}
 
-theme_mode = st.sidebar.selectbox(
-    "🎨 Select Theme",
-    ["Dark", "Light"]
-)
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #161B22;
+}
 
-
-# -----------------------------------
-# Dynamic Theme CSS
-# -----------------------------------
-
-if theme_mode == "Dark":
-
-    st.markdown("""
-    <style>
-
-    .stApp {
-        background-color: #0E1117;
-    }
-
-    textarea {
-        border-radius: 10px !important;
-        background-color: #1E1E1E !important;
-        color: white !important;
-    }
-
-    .stButton > button {
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 12px;
-        height: 3em;
-        width: 100%;
-        font-size: 16px;
-        border: none;
-        font-weight: bold;
-    }
-
-    .stButton > button:hover {
-        background-color: #45a049;
-    }
-
-    section[data-testid="stSidebar"] {
-        background-color: #161B22;
-    }
-
-    </style>
-    """, unsafe_allow_html=True)
-
-else:
-
-    st.markdown("""
-    <style>
-
-    .stApp {
-        background-color: white;
-    }
-
-    textarea {
-        border-radius: 10px !important;
-        background-color: #F5F5F5 !important;
-        color: black !important;
-    }
-
-    .stButton > button {
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 12px;
-        height: 3em;
-        width: 100%;
-        font-size: 16px;
-        border: none;
-        font-weight: bold;
-    }
-
-    .stButton > button:hover {
-        background-color: #45a049;
-    }
-
-    section[data-testid="stSidebar"] {
-        background-color: #EAEAEA;
-    }
-
-    </style>
-    """, unsafe_allow_html=True)
+</style>
+""", unsafe_allow_html=True)
 
 
 # -----------------------------------
@@ -137,6 +81,19 @@ genai.configure(
 model = genai.GenerativeModel(
     "models/gemini-2.5-flash"
 )
+
+
+# -----------------------------------
+# Sidebar
+# -----------------------------------
+
+st.sidebar.title("⚙️ AI SQL Generator")
+
+st.sidebar.info(
+    "Generate SQL queries using Gemini AI 🚀"
+)
+
+st.sidebar.markdown("---")
 
 
 # -----------------------------------
@@ -211,6 +168,7 @@ WHERE type='table'
 
 tables = cursor.fetchall()
 
+# Refresh valid table names only
 table_names = []
 
 for table in tables:
@@ -229,6 +187,7 @@ for table in tables:
 
         pass
 
+# Avoid empty selectbox error
 if not table_names:
     table_names = ["No Tables"]
 
@@ -237,15 +196,11 @@ selected_table = st.sidebar.selectbox(
     table_names
 )
 
-
-# -----------------------------------
-# Generate SQL Function
-# -----------------------------------
-
 def generate_sql(prompt):
 
     try:
 
+        # Get existing tables
         cursor.execute("""
         SELECT name
         FROM sqlite_master
@@ -273,6 +228,7 @@ Database Tables:
 Instructions:
 - If required table already exists, DO NOT generate CREATE TABLE query.
 - Generate only the required SQL query.
+- Generate CREATE TABLE only if no suitable table exists.
 
 User Request:
 {prompt}
@@ -284,6 +240,7 @@ User Request:
 
         sql = response.text.strip()
 
+        # Remove markdown formatting
         sql = sql.replace("```sql", "")
         sql = sql.replace("```", "")
         sql = sql.strip()
@@ -293,8 +250,6 @@ User Request:
     except Exception as e:
 
         return f"❌ Error: {str(e)}"
-
-
 # -----------------------------------
 # Main Title
 # -----------------------------------
@@ -302,9 +257,9 @@ User Request:
 st.markdown("""
 <h1 style='
 text-align: center;
+color: #4CAF50;
 font-size: 55px;
 font-weight: bold;
-color: #4CAF50;
 '>
 🤖 AI SQL Query Generator
 </h1>
@@ -314,6 +269,7 @@ st.markdown(
     """
     <p style='
     text-align:center;
+    color:white;
     font-size:18px;
     '>
     Convert natural language into SQL queries instantly 🚀
@@ -347,6 +303,7 @@ if st.button("🚀 Generate SQL"):
                 user_prompt
             )
 
+        # Save History
         st.session_state.history.append({
             "question": user_prompt,
             "sql": st.session_state.sql_query
@@ -372,6 +329,7 @@ if st.session_state.sql_query:
         language="sql"
     )
 
+    # Download SQL
     st.download_button(
         label="📥 Download SQL",
         data=st.session_state.sql_query,
@@ -381,11 +339,12 @@ if st.session_state.sql_query:
 
 
 # -----------------------------------
-# Explain SQL
+# Explain SQL Feature
 # -----------------------------------
 
 if st.session_state.sql_query:
 
+    # Avoid explaining errors
     if not st.session_state.sql_query.startswith("❌"):
 
         if st.button("🔍 Explain SQL"):
@@ -417,12 +376,10 @@ Explain this SQL query in simple English:
             except Exception as e:
 
                 st.error(
-                    "❌ Gemini API quota exceeded."
+                    "❌ Gemini API quota exceeded. Please wait or use another API key."
                 )
-
-
 # -----------------------------------
-# Execute Query
+# Execute SQL Query Feature
 # -----------------------------------
 
 if st.session_state.sql_query:
@@ -469,7 +426,7 @@ if st.session_state.sql_query:
 
 
 # -----------------------------------
-# Verify SQL
+# SQL Verification Feature
 # -----------------------------------
 
 if st.session_state.sql_query:
@@ -492,9 +449,8 @@ if st.session_state.sql_query:
                 f"❌ Invalid SQL Query: {str(e)}"
             )
 
-
 # -----------------------------------
-# Database Preview
+# Database Preview / Query Output
 # -----------------------------------
 
 st.markdown("---")
@@ -503,6 +459,7 @@ st.subheader("🛢️ Database Preview")
 
 try:
 
+    # If SELECT query executed
     if (
         st.session_state.sql_query
         and st.session_state.sql_query.strip().upper().startswith("SELECT")
@@ -515,6 +472,7 @@ try:
 
         st.dataframe(query_df)
 
+    # Otherwise show selected table preview
     elif selected_table != "No Tables":
 
         preview_query = f"""
@@ -536,9 +494,8 @@ except Exception as e:
         f"❌ Error loading preview: {str(e)}"
     )
 
-
 # -----------------------------------
-# Download Table
+# Download Selected Table
 # -----------------------------------
 
 if selected_table != "No Tables":
@@ -574,7 +531,7 @@ if selected_table != "No Tables":
 
 
 # -----------------------------------
-# Database Tables
+# Database Tables View
 # -----------------------------------
 
 st.markdown("---")
@@ -613,13 +570,9 @@ else:
     st.warning(
         "⚠️ No tables found in database."
     )
-
-
-# -----------------------------------
+    # -----------------------------------
 # Chat History
 # -----------------------------------
-
-st.markdown("---")
 
 st.subheader("🧠 Chat History")
 
@@ -633,16 +586,59 @@ for item in reversed(st.session_state.history):
         item['sql'],
         language="sql"
     )
-
-
 # -----------------------------------
 # Clear Everything
 # -----------------------------------
 
 if st.button("🗑️ Clear Everything"):
 
-    st.session_state.history = []
+    try:
 
-    st.session_state.sql_query = ""
+        # Clear session state
+        st.session_state.history.clear()
 
-    st.rerun()
+        st.session_state.sql_query = ""
+
+        # Close current connection
+        conn.close()
+
+        # Create temporary connection
+        temp_conn = sqlite3.connect(DB_NAME)
+
+        temp_cursor = temp_conn.cursor()
+
+        # Fetch all tables
+        temp_cursor.execute("""
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        """)
+
+        all_tables = temp_cursor.fetchall()
+
+        # Drop all tables
+        for table in all_tables:
+
+            table_name = table[0]
+
+            temp_cursor.execute(
+                f"DROP TABLE IF EXISTS {table_name}"
+            )
+
+        # Save changes
+        temp_conn.commit()
+
+        # Close temp connection
+        temp_conn.close()
+
+        st.success(
+            "✅ History and all database tables cleared."
+        )
+
+        st.rerun()
+
+    except Exception as e:
+
+        st.error(
+            f"❌ Error clearing database: {str(e)}"
+        )
