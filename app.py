@@ -31,16 +31,16 @@ st.markdown("""
 
     background: linear-gradient(
         -45deg,
-        #fbc2eb,
-        #f9d5e5,
-        #fad0c4,
-        #fbcfe8,
-        #e9d5ff
+        #fde2f3,
+        #fce7f3,
+        #fae8ff,
+        #f3e8ff,
+        #fdf4ff
     );
 
     background-size: 500% 500%;
 
-    animation: gradientMove 15s ease infinite;
+    animation: gradientMove 18s ease infinite;
 }
 
 
