@@ -23,115 +23,210 @@ st.set_page_config(
 # Professional White Theme
 # -----------------------------------
 
-st.markdown("""
-<style>
+# -----------------------------------
+# Show Generated SQL
+# -----------------------------------
 
-/* Main App */
-.stApp {
-    background: linear-gradient(
-        to bottom right,
-        #F9FAFB,
-        #E5E7EB
-    );
-}
+if st.session_state.sql_query:
 
-/* Main Title */
-h1 {
-    color: #16A34A !important;
-    text-align: center;
-    font-weight: 800;
-}
+    st.subheader("📄 Generated SQL Query")
 
-/* Subheaders */
-h2, h3 {
-    color: #111827 !important;
-}
+    st.code(
+        st.session_state.sql_query,
+        language="sql"
+    )
 
-/* General Text */
-html, body, [class*="css"]  {
-    color: #111827 !important;
-}
 
-/* Paragraph Text */
-p, label, div {
-    color: #111827 !important;
-}
+# -----------------------------------
+# Explain SQL
+# -----------------------------------
 
-/* Text Area */
-textarea {
-    background-color: white !important;
-    color: #111827 !important;
-    border-radius: 14px !important;
-    border: 1px solid #D1D5DB !important;
-    padding: 12px !important;
-}
+if st.session_state.sql_query:
 
-/* Buttons */
-.stButton > button {
-    background: linear-gradient(
-        to right,
-        #22C55E,
-        #16A34A
-    );
+    if not st.session_state.sql_query.startswith("❌"):
 
-    color: white !important;
-    border-radius: 14px;
-    border: none;
-    font-weight: bold;
-    height: 3em;
-}
+        if st.button("🔍 Explain SQL"):
 
-/* Hover */
-.stButton > button:hover {
-    background: linear-gradient(
-        to right,
-        #16A34A,
-        #15803D
-    );
-}
+            try:
 
-/* Sidebar */
-section[data-testid="stSidebar"] {
-    background-color: white;
-    border-right: 1px solid #E5E7EB;
-}
+                with st.spinner(
+                    "Explaining SQL query..."
+                ):
 
-/* Sidebar Text */
-section[data-testid="stSidebar"] * {
-    color: #111827 !important;
-}
+                    explanation_prompt = f"""
+Explain this SQL query in simple English:
 
-/* Cards */
-[data-testid="metric-container"] {
-    background-color: white;
-    border-radius: 12px;
-    padding: 10px;
-    border: 1px solid #E5E7EB;
-}
+{st.session_state.sql_query}
+"""
 
-/* Dataframe */
-[data-testid="stDataFrame"] {
-    border-radius: 12px;
-    overflow: hidden;
-}
+                    explanation = model.generate_content(
+                        explanation_prompt
+                    )
 
-/* Code Block */
-pre {
-    border-radius: 12px !important;
-}
+                    st.subheader(
+                        "🧠 SQL Explanation"
+                    )
 
-/* Input text */
-input, textarea {
-    color: #111827 !important;
-}
+                    st.write(
+                        explanation.text
+                    )
 
-/* Selectbox */
-div[data-baseweb="select"] * {
-    color: #111827 !important;
-}
+            except Exception:
 
-</style>
-""", unsafe_allow_html=True)
+                st.error(
+                    "❌ Gemini API quota exceeded."
+                )
+
+
+# -----------------------------------
+# Execute Query
+# -----------------------------------
+
+if st.session_state.sql_query:
+
+    if st.button("▶️ Execute Query"):
+
+        try:
+
+            cursor.execute(
+                st.session_state.sql_query
+            )
+
+            conn.commit()
+
+            if st.session_state.sql_query.strip().upper().startswith("SELECT"):
+
+                results = cursor.fetchall()
+
+                column_names = [
+                    description[0]
+                    for description in cursor.description
+                ]
+
+                df = pd.DataFrame(
+                    results,
+                    columns=column_names
+                )
+
+                st.subheader("📊 Query Results")
+
+                st.dataframe(df)
+
+            else:
+
+                st.success(
+                    "✅ Query executed successfully."
+                )
+
+        except Exception as e:
+
+            st.error(
+                f"❌ SQL Error: {str(e)}"
+            )
+
+
+# -----------------------------------
+# Verify SQL
+# -----------------------------------
+
+if st.session_state.sql_query:
+
+    if st.button("✅ Verify SQL"):
+
+        try:
+
+            cursor.execute(
+                f"EXPLAIN QUERY PLAN {st.session_state.sql_query}"
+            )
+
+            st.success(
+                "✅ SQL Query is valid."
+            )
+
+        except Exception as e:
+
+            st.error(
+                f"❌ Invalid SQL Query: {str(e)}"
+            )
+
+
+# -----------------------------------
+# Database Preview
+# -----------------------------------
+
+st.markdown("---")
+
+st.subheader("🛢️ Database Preview")
+
+try:
+
+    if (
+        st.session_state.sql_query
+        and st.session_state.sql_query.strip().upper().startswith("SELECT")
+    ):
+
+        query_df = pd.read_sql_query(
+            st.session_state.sql_query,
+            conn
+        )
+
+        st.dataframe(query_df)
+
+    elif selected_table != "No Tables":
+
+        preview_query = f"""
+        SELECT *
+        FROM {selected_table}
+        LIMIT 5
+        """
+
+        preview_df = pd.read_sql_query(
+            preview_query,
+            conn
+        )
+
+        st.dataframe(preview_df)
+
+except Exception as e:
+
+    st.error(
+        f"❌ Error loading preview: {str(e)}"
+    )
+
+
+# -----------------------------------
+# Chat History
+# -----------------------------------
+
+st.markdown("---")
+
+st.subheader("🧠 Chat History")
+
+for item in reversed(st.session_state.history):
+
+    st.markdown(
+       f"### 💬 {item['question']}"
+    )
+
+    st.code(
+        item['sql'],
+        language="sql"
+    )
+
+
+# -----------------------------------
+# Clear Everything
+# -----------------------------------
+
+st.markdown("---")
+
+if st.button("🗑️ Clear Everything"):
+
+    st.session_state.history = []
+
+    st.session_state.sql_query = ""
+
+    st.rerun()
 
 
 # -----------------------------------
