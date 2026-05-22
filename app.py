@@ -20,131 +20,114 @@ st.set_page_config(
 
 
 # -----------------------------------
-# Animated Professional AI Theme
+# Professional White Theme
 # -----------------------------------
 
 st.markdown("""
 <style>
 
-/* Animated Dynamic Background */
+/* Main App */
 .stApp {
-
     background: linear-gradient(
-        -45deg,
-        #fde2f3,
-        #fce7f3,
-        #fae8ff,
-        #f3e8ff,
-        #fdf4ff
+        to bottom right,
+        #F9FAFB,
+        #E5E7EB
     );
-
-    background-size: 500% 500%;
-
-    animation: gradientMove 18s ease infinite;
 }
 
-
-/* Smooth Animation */
-@keyframes gradientMove {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    25% {
-        background-position: 50% 100%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    75% {
-        background-position: 50% 0%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
+/* Main Title */
+h1 {
+    color: #16A34A !important;
+    text-align: center;
+    font-weight: 800;
 }
 
-
-/* Glassmorphism Cards */
-[data-testid="metric-container"],
-[data-testid="stDataFrame"],
-pre {
-
-    background: rgba(255,255,255,0.6);
-
-    backdrop-filter: blur(10px);
-
-    border-radius: 16px;
-
-    border: 1px solid rgba(255,255,255,0.3);
-
-    box-shadow: 0px 8px 24px rgba(0,0,0,0.08);
-}
-
-
-/* Text Area */
-textarea {
-
-    background: rgba(255,255,255,0.7) !important;
-
-    backdrop-filter: blur(8px);
-
-    border-radius: 16px !important;
-
-    border: 1px solid rgba(255,255,255,0.4) !important;
-
+/* Subheaders */
+h2, h3 {
     color: #111827 !important;
 }
 
+/* General Text */
+html, body, [class*="css"]  {
+    color: #111827 !important;
+}
+
+/* Paragraph Text */
+p, label, div {
+    color: #111827 !important;
+}
+
+/* Text Area */
+textarea {
+    background-color: white !important;
+    color: #111827 !important;
+    border-radius: 14px !important;
+    border: 1px solid #D1D5DB !important;
+    padding: 12px !important;
+}
 
 /* Buttons */
 .stButton > button {
-
     background: linear-gradient(
         to right,
-        #ec4899,
-        #a855f7
+        #22C55E,
+        #16A34A
     );
 
     color: white !important;
-
-    border: none;
-
     border-radius: 14px;
-
+    border: none;
     font-weight: bold;
-
-    transition: 0.3s ease;
-
-    box-shadow: 0px 6px 18px rgba(236,72,153,0.3);
+    height: 3em;
 }
-
 
 /* Hover */
 .stButton > button:hover {
-
-    transform: scale(1.03);
-
     background: linear-gradient(
         to right,
-        #db2777,
-        #9333ea
+        #16A34A,
+        #15803D
     );
 }
 
-
 /* Sidebar */
 section[data-testid="stSidebar"] {
+    background-color: white;
+    border-right: 1px solid #E5E7EB;
+}
 
-    background: rgba(255,255,255,0.5);
+/* Sidebar Text */
+section[data-testid="stSidebar"] * {
+    color: #111827 !important;
+}
 
-    backdrop-filter: blur(14px);
+/* Cards */
+[data-testid="metric-container"] {
+    background-color: white;
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid #E5E7EB;
+}
 
-    border-right: 1px solid rgba(255,255,255,0.3);
+/* Dataframe */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Code Block */
+pre {
+    border-radius: 12px !important;
+}
+
+/* Input text */
+input, textarea {
+    color: #111827 !important;
+}
+
+/* Selectbox */
+div[data-baseweb="select"] * {
+    color: #111827 !important;
 }
 
 </style>
@@ -389,7 +372,6 @@ st.markdown(
     text-align:center;
     color:#111827;
     font-size:18px;
-    font-weight:500;
     '>
     Convert natural language into SQL queries instantly 🚀
     </p>
@@ -447,6 +429,54 @@ if st.session_state.sql_query:
         language="sql"
     )
 
+    st.download_button(
+        label="📥 Download SQL",
+        data=st.session_state.sql_query,
+        file_name="query.sql",
+        mime="text/sql"
+    )
+
+
+# -----------------------------------
+# Explain SQL
+# -----------------------------------
+
+if st.session_state.sql_query:
+
+    if not st.session_state.sql_query.startswith("❌"):
+
+        if st.button("🔍 Explain SQL"):
+
+            try:
+
+                with st.spinner(
+                    "Explaining SQL query..."
+                ):
+
+                    explanation_prompt = f"""
+Explain this SQL query in simple English:
+
+{st.session_state.sql_query}
+"""
+
+                    explanation = model.generate_content(
+                        explanation_prompt
+                    )
+
+                    st.subheader(
+                        "🧠 SQL Explanation"
+                    )
+
+                    st.write(
+                        explanation.text
+                    )
+
+            except Exception:
+
+                st.error(
+                    "❌ Gemini API quota exceeded."
+                )
+
 
 # -----------------------------------
 # Execute Query
@@ -496,6 +526,31 @@ if st.session_state.sql_query:
 
 
 # -----------------------------------
+# Verify SQL
+# -----------------------------------
+
+if st.session_state.sql_query:
+
+    if st.button("✅ Verify SQL"):
+
+        try:
+
+            cursor.execute(
+                f"EXPLAIN QUERY PLAN {st.session_state.sql_query}"
+            )
+
+            st.success(
+                "✅ SQL Query is valid."
+            )
+
+        except Exception as e:
+
+            st.error(
+                f"❌ Invalid SQL Query: {str(e)}"
+            )
+
+
+# -----------------------------------
 # Database Preview
 # -----------------------------------
 
@@ -536,6 +591,84 @@ except Exception as e:
 
     st.error(
         f"❌ Error loading preview: {str(e)}"
+    )
+
+
+# -----------------------------------
+# Download Table
+# -----------------------------------
+
+if selected_table != "No Tables":
+
+    try:
+
+        download_query = f"""
+        SELECT *
+        FROM {selected_table}
+        """
+
+        download_df = pd.read_sql_query(
+            download_query,
+            conn
+        )
+
+        csv = download_df.to_csv(
+            index=False
+        ).encode("utf-8")
+
+        st.download_button(
+            label=f"📥 Download {selected_table} Table",
+            data=csv,
+            file_name=f"{selected_table}.csv",
+            mime="text/csv"
+        )
+
+    except Exception as e:
+
+        st.error(
+            f"❌ Download Error: {str(e)}"
+        )
+
+
+# -----------------------------------
+# Database Tables
+# -----------------------------------
+
+st.markdown("---")
+
+st.header("🗂️ Database Tables")
+
+if selected_table != "No Tables":
+
+    for table in table_names:
+
+        st.subheader(f"📄 {table}")
+
+        try:
+
+            query = f"""
+            SELECT *
+            FROM {table}
+            LIMIT 10
+            """
+
+            table_df = pd.read_sql_query(
+                query,
+                conn
+            )
+
+            st.dataframe(table_df)
+
+        except Exception as e:
+
+            st.error(
+                f"❌ Error loading {table}: {str(e)}"
+            )
+
+else:
+
+    st.warning(
+        "⚠️ No tables found in database."
     )
 
 
