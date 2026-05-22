@@ -1,439 +1,3 @@
-# Import Streamlit for UI
-import streamlit as st
-import os
-import sqlite3
-import pandas as pd
-
-# Import Google Generative AI library
-import google.generativeai as genai
-
-
-# -----------------------------------
-# Configure Page
-# -----------------------------------
-
-st.set_page_config(
-    page_title="AI SQL Query Generator",
-    page_icon="🤖",
-    layout="centered"
-)
-
-
-# -----------------------------------
-# Animated Professional AI Theme
-# -----------------------------------
-
-st.markdown("""
-<style>
-
-/* Animated Dynamic Background */
-.stApp {
-
-    background: linear-gradient(
-        -45deg,
-        #fde2f3,
-        #fce7f3,
-        #fae8ff,
-        #f3e8ff,
-        #fdf4ff
-    );
-
-    background-size: 500% 500%;
-
-    animation: gradientMove 18s ease infinite;
-}
-
-
-/* Smooth Animation */
-@keyframes gradientMove {
-
-    0% {
-        background-position: 0% 50%;
-    }
-
-    25% {
-        background-position: 50% 100%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    75% {
-        background-position: 50% 0%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-
-/* Glassmorphism Cards */
-[data-testid="metric-container"],
-[data-testid="stDataFrame"],
-pre {
-
-    background: rgba(255,255,255,0.6);
-
-    backdrop-filter: blur(10px);
-
-    border-radius: 16px;
-
-    border: 1px solid rgba(255,255,255,0.3);
-
-    box-shadow: 0px 8px 24px rgba(0,0,0,0.08);
-}
-
-
-/* Text Area */
-textarea {
-
-    background: rgba(255,255,255,0.7) !important;
-
-    backdrop-filter: blur(8px);
-
-    border-radius: 16px !important;
-
-    border: 1px solid rgba(255,255,255,0.4) !important;
-
-    color: #111827 !important;
-}
-
-
-/* Buttons */
-.stButton > button {
-
-    background: linear-gradient(
-        to right,
-        #ec4899,
-        #a855f7
-    );
-
-    color: white !important;
-
-    border: none;
-
-    border-radius: 14px;
-
-    font-weight: bold;
-
-    transition: 0.3s ease;
-
-    box-shadow: 0px 6px 18px rgba(236,72,153,0.3);
-}
-
-
-/* Hover */
-.stButton > button:hover {
-
-    transform: scale(1.03);
-
-    background: linear-gradient(
-        to right,
-        #db2777,
-        #9333ea
-    );
-}
-
-
-/* Sidebar */
-section[data-testid="stSidebar"] {
-
-    background: rgba(255,255,255,0.5);
-
-    backdrop-filter: blur(14px);
-
-    border-right: 1px solid rgba(255,255,255,0.3);
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# -----------------------------------
-# Configure Gemini API Key
-# -----------------------------------
-
-genai.configure(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
-
-
-# -----------------------------------
-# Load Gemini model
-# -----------------------------------
-
-model = genai.GenerativeModel(
-    "models/gemini-flash-latest"
-)
-
-
-# -----------------------------------
-# Sidebar
-# -----------------------------------
-
-st.sidebar.title("⚙️ AI SQL Generator")
-
-st.sidebar.info(
-    "Generate SQL queries using Gemini AI 🚀"
-)
-
-st.sidebar.markdown("---")
-
-
-# -----------------------------------
-# Upload Database File
-# -----------------------------------
-
-uploaded_db = st.sidebar.file_uploader(
-    "📁 Upload SQLite Database",
-    type=["db", "sqlite", "sqlite3"]
-)
-
-
-# -----------------------------------
-# Database Setup
-# -----------------------------------
-
-DB_NAME = "database.db"
-
-# Create DB if not exists
-if not os.path.exists(DB_NAME):
-
-    temp_conn = sqlite3.connect(DB_NAME)
-
-    temp_conn.close()
-
-# Save uploaded DB
-if uploaded_db is not None:
-
-    DB_NAME = uploaded_db.name
-
-    with open(DB_NAME, "wb") as f:
-
-        f.write(uploaded_db.getbuffer())
-
-    st.sidebar.success(
-        "✅ Database uploaded successfully."
-    )
-
-
-# -----------------------------------
-# Database Connection
-# -----------------------------------
-
-try:
-
-    conn = sqlite3.connect(
-        DB_NAME,
-        check_same_thread=False
-    )
-
-    cursor = conn.cursor()
-
-except Exception as e:
-
-    st.error(
-        f"❌ Database Connection Error: {str(e)}"
-    )
-
-    st.stop()
-
-
-# -----------------------------------
-# Session State
-# -----------------------------------
-
-if "history" not in st.session_state:
-
-    st.session_state.history = []
-
-if "sql_query" not in st.session_state:
-
-    st.session_state.sql_query = ""
-
-
-# -----------------------------------
-# Sidebar Metrics
-# -----------------------------------
-
-st.sidebar.metric(
-    "Queries Generated",
-    len(st.session_state.history)
-)
-
-
-# -----------------------------------
-# Database Viewer
-# -----------------------------------
-
-st.sidebar.subheader("🛢️ Database Viewer")
-
-try:
-
-    cursor.execute("""
-    SELECT name
-    FROM sqlite_master
-    WHERE type='table'
-    """)
-
-    tables = cursor.fetchall()
-
-except:
-
-    tables = []
-
-table_names = []
-
-for table in tables:
-
-    table_name = table[0]
-
-    try:
-
-        cursor.execute(
-            f"SELECT 1 FROM {table_name} LIMIT 1"
-        )
-
-        table_names.append(table_name)
-
-    except:
-
-        pass
-
-if not table_names:
-
-    table_names = ["No Tables"]
-
-selected_table = st.sidebar.selectbox(
-    "📋 Select Table",
-    table_names
-)
-
-
-# -----------------------------------
-# Generate SQL Function
-# -----------------------------------
-
-def generate_sql(prompt):
-
-    try:
-
-        cursor.execute("""
-        SELECT name
-        FROM sqlite_master
-        WHERE type='table'
-        """)
-
-        existing_tables = [
-            table[0]
-            for table in cursor.fetchall()
-        ]
-
-        full_prompt = f"""
-You are an SQL generator.
-
-Rules:
-1. Return ONLY SQL query
-2. No explanation
-3. No markdown
-4. No comments
-5. No extra text
-
-Database Tables:
-{existing_tables}
-
-Instructions:
-- If required table already exists, DO NOT generate CREATE TABLE query.
-- Generate only the required SQL query.
-
-User Request:
-{prompt}
-"""
-
-        response = model.generate_content(
-            full_prompt
-        )
-
-        sql = response.text.strip()
-
-        sql = sql.replace("```sql", "")
-        sql = sql.replace("```", "")
-        sql = sql.strip()
-
-        return sql
-
-    except Exception as e:
-
-        return f"❌ Error: {str(e)}"
-
-
-# -----------------------------------
-# Main Title
-# -----------------------------------
-
-st.markdown("""
-<h1 style='
-text-align: center;
-font-size: 55px;
-font-weight: bold;
-'>
-🤖 AI SQL Query Generator
-</h1>
-""", unsafe_allow_html=True)
-
-st.markdown(
-    """
-    <p style='
-    text-align:center;
-    color:#111827;
-    font-size:18px;
-    font-weight:500;
-    '>
-    Convert natural language into SQL queries instantly 🚀
-    </p>
-    """,
-    unsafe_allow_html=True
-)
-
-
-# -----------------------------------
-# User Input
-# -----------------------------------
-
-user_prompt = st.text_area(
-    "Enter your database question:",
-    placeholder="Example: Find employee with second highest salary"
-)
-
-
-# -----------------------------------
-# Generate SQL Button
-# -----------------------------------
-
-if st.button("🚀 Generate SQL"):
-
-    if user_prompt.strip():
-
-        with st.spinner("Generating SQL query..."):
-
-            st.session_state.sql_query = generate_sql(
-                user_prompt
-            )
-
-        st.session_state.history.append({
-            "question": user_prompt,
-            "sql": st.session_state.sql_query
-        })
-
-    else:
-
-        st.warning(
-            "Please enter a question."
-        )
-
-
 # -----------------------------------
 # Show Generated SQL
 # -----------------------------------
@@ -446,6 +10,47 @@ if st.session_state.sql_query:
         st.session_state.sql_query,
         language="sql"
     )
+
+
+# -----------------------------------
+# Explain SQL
+# -----------------------------------
+
+if st.session_state.sql_query:
+
+    if not st.session_state.sql_query.startswith("❌"):
+
+        if st.button("🔍 Explain SQL"):
+
+            try:
+
+                with st.spinner(
+                    "Explaining SQL query..."
+                ):
+
+                    explanation_prompt = f"""
+Explain this SQL query in simple English:
+
+{st.session_state.sql_query}
+"""
+
+                    explanation = model.generate_content(
+                        explanation_prompt
+                    )
+
+                    st.subheader(
+                        "🧠 SQL Explanation"
+                    )
+
+                    st.write(
+                        explanation.text
+                    )
+
+            except Exception:
+
+                st.error(
+                    "❌ Gemini API quota exceeded."
+                )
 
 
 # -----------------------------------
@@ -496,79 +101,25 @@ if st.session_state.sql_query:
 
 
 # -----------------------------------
-# Database Preview
+# Verify SQL
 # -----------------------------------
 
-st.markdown("---")
+if st.session_state.sql_query:
 
-st.subheader("🛢️ Database Preview")
+    if st.button("✅ Verify SQL"):
 
-try:
+        try:
 
-    if (
-        st.session_state.sql_query
-        and st.session_state.sql_query.strip().upper().startswith("SELECT")
-    ):
+            cursor.execute(
+                f"EXPLAIN QUERY PLAN {st.session_state.sql_query}"
+            )
 
-        query_df = pd.read_sql_query(
-            st.session_state.sql_query,
-            conn
-        )
+            st.success(
+                "✅ SQL Query is valid."
+            )
 
-        st.dataframe(query_df)
+        except Exception as e:
 
-    elif selected_table != "No Tables":
-
-        preview_query = f"""
-        SELECT *
-        FROM {selected_table}
-        LIMIT 5
-        """
-
-        preview_df = pd.read_sql_query(
-            preview_query,
-            conn
-        )
-
-        st.dataframe(preview_df)
-
-except Exception as e:
-
-    st.error(
-        f"❌ Error loading preview: {str(e)}"
-    )
-
-
-# -----------------------------------
-# Chat History
-# -----------------------------------
-
-st.markdown("---")
-
-st.subheader("🧠 Chat History")
-
-for item in reversed(st.session_state.history):
-
-    st.markdown(
-       f"### 💬 {item['question']}"
-    )
-
-    st.code(
-        item['sql'],
-        language="sql"
-    )
-
-
-# -----------------------------------
-# Clear Everything
-# -----------------------------------
-
-st.markdown("---")
-
-if st.button("🗑️ Clear Everything"):
-
-    st.session_state.history = []
-
-    st.session_state.sql_query = ""
-
-    st.rerun()
+            st.error(
+                f"❌ Invalid SQL Query: {str(e)}"
+            )
