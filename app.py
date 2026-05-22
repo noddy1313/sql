@@ -20,45 +20,175 @@ st.set_page_config(
 
 
 # -----------------------------------
-# Custom UI Design
+# Animated Professional AI Theme
 # -----------------------------------
 
 st.markdown("""
 <style>
 
-/* Main App */
+/* Animated Background */
 .stApp {
-    background-color: #0B1120;
+
+    background: linear-gradient(
+        -45deg,
+        #F9FAFB,
+        #DCFCE7,
+        #E0F2FE,
+        #F0FDF4
+    );
+
+    background-size: 400% 400%;
+
+    animation: gradientBG 15s ease infinite;
+}
+
+/* Background Animation */
+@keyframes gradientBG {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+
+/* Main Title */
+h1 {
+    color: #16A34A !important;
+    text-align: center;
+    font-weight: 800;
+}
+
+/* Subheaders */
+h2, h3 {
+    color: #111827 !important;
+}
+
+/* General Text */
+html, body, [class*="css"] {
+    color: #111827 !important;
+}
+
+/* Paragraph Text */
+p, label, div {
+    color: #111827 !important;
+}
+
+/* Text Area */
+textarea {
+    background-color: white !important;
+    color: #111827 !important;
+    border-radius: 16px !important;
+    border: 1px solid #D1D5DB !important;
+    padding: 14px !important;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
 }
 
 /* Buttons */
 .stButton > button {
+
     background: linear-gradient(
         to right,
         #22C55E,
         #16A34A
     );
 
-    color: white;
+    color: white !important;
+
     border-radius: 14px;
+
     border: none;
+
     font-weight: bold;
+
+    height: 3em;
+
+    transition: 0.3s ease;
+
+    box-shadow: 0px 4px 12px rgba(34,197,94,0.3);
+}
+
+/* Hover Effect */
+.stButton > button:hover {
+
+    transform: scale(1.02);
+
+    background: linear-gradient(
+        to right,
+        #16A34A,
+        #15803D
+    );
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #111827;
+
+    background-color: rgba(255,255,255,0.8);
+
+    backdrop-filter: blur(12px);
+
+    border-right: 1px solid #E5E7EB;
 }
 
-/* Text Area */
-textarea {
-    background-color: #1F2937 !important;
-    color: white !important;
-    border-radius: 12px !important;
+/* Sidebar Text */
+section[data-testid="stSidebar"] * {
+    color: #111827 !important;
+}
+
+/* Cards */
+[data-testid="metric-container"] {
+
+    background-color: rgba(255,255,255,0.8);
+
+    border-radius: 16px;
+
+    padding: 12px;
+
+    border: 1px solid #E5E7EB;
+
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Dataframe */
+[data-testid="stDataFrame"] {
+
+    border-radius: 16px;
+
+    overflow: hidden;
+
+    background-color: white;
+}
+
+/* Code Block */
+pre {
+
+    border-radius: 14px !important;
+
+    border: 1px solid #E5E7EB !important;
+
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+}
+
+/* Selectbox */
+div[data-baseweb="select"] * {
+    color: #111827 !important;
+}
+
+/* Horizontal Line */
+hr {
+    border: 1px solid #D1D5DB;
 }
 
 </style>
 """, unsafe_allow_html=True)
+
 
 # -----------------------------------
 # Configure Gemini API Key
@@ -100,8 +230,19 @@ uploaded_db = st.sidebar.file_uploader(
     type=["db", "sqlite", "sqlite3"]
 )
 
-# Default database
+
+# -----------------------------------
+# Database Setup
+# -----------------------------------
+
 DB_NAME = "database.db"
+
+# Create DB if not exists
+if not os.path.exists(DB_NAME):
+
+    temp_conn = sqlite3.connect(DB_NAME)
+
+    temp_conn.close()
 
 # Save uploaded DB
 if uploaded_db is not None:
@@ -109,6 +250,7 @@ if uploaded_db is not None:
     DB_NAME = uploaded_db.name
 
     with open(DB_NAME, "wb") as f:
+
         f.write(uploaded_db.getbuffer())
 
     st.sidebar.success(
@@ -120,12 +262,22 @@ if uploaded_db is not None:
 # Database Connection
 # -----------------------------------
 
-conn = sqlite3.connect(
-    DB_NAME,
-    check_same_thread=False
-)
+try:
 
-cursor = conn.cursor()
+    conn = sqlite3.connect(
+        DB_NAME,
+        check_same_thread=False
+    )
+
+    cursor = conn.cursor()
+
+except Exception as e:
+
+    st.error(
+        f"❌ Database Connection Error: {str(e)}"
+    )
+
+    st.stop()
 
 
 # -----------------------------------
@@ -133,9 +285,11 @@ cursor = conn.cursor()
 # -----------------------------------
 
 if "history" not in st.session_state:
+
     st.session_state.history = []
 
 if "sql_query" not in st.session_state:
+
     st.session_state.sql_query = ""
 
 
@@ -155,15 +309,20 @@ st.sidebar.metric(
 
 st.sidebar.subheader("🛢️ Database Viewer")
 
-cursor.execute("""
-SELECT name
-FROM sqlite_master
-WHERE type='table'
-""")
+try:
 
-tables = cursor.fetchall()
+    cursor.execute("""
+    SELECT name
+    FROM sqlite_master
+    WHERE type='table'
+    """)
 
-# Refresh valid table names only
+    tables = cursor.fetchall()
+
+except:
+
+    tables = []
+
 table_names = []
 
 for table in tables:
@@ -182,8 +341,8 @@ for table in tables:
 
         pass
 
-# Avoid empty selectbox error
 if not table_names:
+
     table_names = ["No Tables"]
 
 selected_table = st.sidebar.selectbox(
@@ -191,11 +350,15 @@ selected_table = st.sidebar.selectbox(
     table_names
 )
 
+
+# -----------------------------------
+# Generate SQL Function
+# -----------------------------------
+
 def generate_sql(prompt):
 
     try:
 
-        # Get existing tables
         cursor.execute("""
         SELECT name
         FROM sqlite_master
@@ -223,7 +386,6 @@ Database Tables:
 Instructions:
 - If required table already exists, DO NOT generate CREATE TABLE query.
 - Generate only the required SQL query.
-- Generate CREATE TABLE only if no suitable table exists.
 
 User Request:
 {prompt}
@@ -235,7 +397,6 @@ User Request:
 
         sql = response.text.strip()
 
-        # Remove markdown formatting
         sql = sql.replace("```sql", "")
         sql = sql.replace("```", "")
         sql = sql.strip()
@@ -245,6 +406,8 @@ User Request:
     except Exception as e:
 
         return f"❌ Error: {str(e)}"
+
+
 # -----------------------------------
 # Main Title
 # -----------------------------------
@@ -252,7 +415,6 @@ User Request:
 st.markdown("""
 <h1 style='
 text-align: center;
-color: #4CAF50;
 font-size: 55px;
 font-weight: bold;
 '>
@@ -264,8 +426,9 @@ st.markdown(
     """
     <p style='
     text-align:center;
-    color:white;
+    color:#111827;
     font-size:18px;
+    font-weight:500;
     '>
     Convert natural language into SQL queries instantly 🚀
     </p>
@@ -298,7 +461,6 @@ if st.button("🚀 Generate SQL"):
                 user_prompt
             )
 
-        # Save History
         st.session_state.history.append({
             "question": user_prompt,
             "sql": st.session_state.sql_query
@@ -324,57 +486,9 @@ if st.session_state.sql_query:
         language="sql"
     )
 
-    # Download SQL
-    st.download_button(
-        label="📥 Download SQL",
-        data=st.session_state.sql_query,
-        file_name="query.sql",
-        mime="text/sql"
-    )
-
 
 # -----------------------------------
-# Explain SQL Feature
-# -----------------------------------
-
-if st.session_state.sql_query:
-
-    # Avoid explaining errors
-    if not st.session_state.sql_query.startswith("❌"):
-
-        if st.button("🔍 Explain SQL"):
-
-            try:
-
-                with st.spinner(
-                    "Explaining SQL query..."
-                ):
-
-                    explanation_prompt = f"""
-Explain this SQL query in simple English:
-
-{st.session_state.sql_query}
-"""
-
-                    explanation = model.generate_content(
-                        explanation_prompt
-                    )
-
-                    st.subheader(
-                        "🧠 SQL Explanation"
-                    )
-
-                    st.write(
-                        explanation.text
-                    )
-
-            except Exception as e:
-
-                st.error(
-                    "❌ Gemini API quota exceeded. Please wait or use another API key."
-                )
-# -----------------------------------
-# Execute SQL Query Feature
+# Execute Query
 # -----------------------------------
 
 if st.session_state.sql_query:
@@ -421,31 +535,7 @@ if st.session_state.sql_query:
 
 
 # -----------------------------------
-# SQL Verification Feature
-# -----------------------------------
-
-if st.session_state.sql_query:
-
-    if st.button("✅ Verify SQL"):
-
-        try:
-
-            cursor.execute(
-                f"EXPLAIN QUERY PLAN {st.session_state.sql_query}"
-            )
-
-            st.success(
-                "✅ SQL Query is valid."
-            )
-
-        except Exception as e:
-
-            st.error(
-                f"❌ Invalid SQL Query: {str(e)}"
-            )
-
-# -----------------------------------
-# Database Preview / Query Output
+# Database Preview
 # -----------------------------------
 
 st.markdown("---")
@@ -454,7 +544,6 @@ st.subheader("🛢️ Database Preview")
 
 try:
 
-    # If SELECT query executed
     if (
         st.session_state.sql_query
         and st.session_state.sql_query.strip().upper().startswith("SELECT")
@@ -467,7 +556,6 @@ try:
 
         st.dataframe(query_df)
 
-    # Otherwise show selected table preview
     elif selected_table != "No Tables":
 
         preview_query = f"""
@@ -489,85 +577,12 @@ except Exception as e:
         f"❌ Error loading preview: {str(e)}"
     )
 
-# -----------------------------------
-# Download Selected Table
-# -----------------------------------
-
-if selected_table != "No Tables":
-
-    try:
-
-        download_query = f"""
-        SELECT *
-        FROM {selected_table}
-        """
-
-        download_df = pd.read_sql_query(
-            download_query,
-            conn
-        )
-
-        csv = download_df.to_csv(
-            index=False
-        ).encode("utf-8")
-
-        st.download_button(
-            label=f"📥 Download {selected_table} Table",
-            data=csv,
-            file_name=f"{selected_table}.csv",
-            mime="text/csv"
-        )
-
-    except Exception as e:
-
-        st.error(
-            f"❌ Download Error: {str(e)}"
-        )
-
 
 # -----------------------------------
-# Database Tables View
+# Chat History
 # -----------------------------------
 
 st.markdown("---")
-
-st.header("🗂️ Database Tables")
-
-if selected_table != "No Tables":
-
-    for table in table_names:
-
-        st.subheader(f"📄 {table}")
-
-        try:
-
-            query = f"""
-            SELECT *
-            FROM {table}
-            LIMIT 10
-            """
-
-            table_df = pd.read_sql_query(
-                query,
-                conn
-            )
-
-            st.dataframe(table_df)
-
-        except Exception as e:
-
-            st.error(
-                f"❌ Error loading {table}: {str(e)}"
-            )
-
-else:
-
-    st.warning(
-        "⚠️ No tables found in database."
-    )
-    # -----------------------------------
-# Chat History
-# -----------------------------------
 
 st.subheader("🧠 Chat History")
 
@@ -581,59 +596,18 @@ for item in reversed(st.session_state.history):
         item['sql'],
         language="sql"
     )
+
+
 # -----------------------------------
 # Clear Everything
 # -----------------------------------
 
+st.markdown("---")
+
 if st.button("🗑️ Clear Everything"):
 
-    try:
+    st.session_state.history = []
 
-        # Clear session state
-        st.session_state.history.clear()
+    st.session_state.sql_query = ""
 
-        st.session_state.sql_query = ""
-
-        # Close current connection
-        conn.close()
-
-        # Create temporary connection
-        temp_conn = sqlite3.connect(DB_NAME)
-
-        temp_cursor = temp_conn.cursor()
-
-        # Fetch all tables
-        temp_cursor.execute("""
-        SELECT name
-        FROM sqlite_master
-        WHERE type='table'
-        """)
-
-        all_tables = temp_cursor.fetchall()
-
-        # Drop all tables
-        for table in all_tables:
-
-            table_name = table[0]
-
-            temp_cursor.execute(
-                f"DROP TABLE IF EXISTS {table_name}"
-            )
-
-        # Save changes
-        temp_conn.commit()
-
-        # Close temp connection
-        temp_conn.close()
-
-        st.success(
-            "✅ History and all database tables cleared."
-        )
-
-        st.rerun()
-
-    except Exception as e:
-
-        st.error(
-            f"❌ Error clearing database: {str(e)}"
-        )
+    st.rerun()
