@@ -28,11 +28,36 @@ st.markdown("""
 
 /* Main App */
 .stApp {
+
     background: linear-gradient(
-        to bottom right,
-        #F9FAFB,
-        #E5E7EB
+        -45deg,
+        #fde2f3,
+        #fce7f3,
+        #fae8ff,
+        #f3e8ff,
+        #fdf4ff
     );
+
+    background-size: 400% 400%;
+
+    animation: gradientBG 15s ease infinite;
+}
+
+
+/* Background Animation */
+@keyframes gradientBG {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 /* Main Title */
