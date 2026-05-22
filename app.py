@@ -26,86 +26,39 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Main background */
+/* Main App */
 .stApp {
-    background-color: #0E1117;
-    color: white;
+    background-color: #0B1120;
 }
 
-/* Text area */
-textarea {
-    border-radius: 10px !important;
-    background-color: #1E1E1E !important;
-    color: white !important;
-}
-
-/* Button styling */
+/* Buttons */
 .stButton > button {
-    background-color: #4CAF50;
+    background: linear-gradient(
+        to right,
+        #22C55E,
+        #16A34A
+    );
+
     color: white;
-    border-radius: 12px;
-    height: 3em;
-    width: 100%;
-    font-size: 16px;
+    border-radius: 14px;
     border: none;
     font-weight: bold;
 }
 
-/* Button hover */
-.stButton > button:hover {
-    background-color: #45a049;
-}
-
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #161B22;
+    background-color: #111827;
+}
+
+/* Text Area */
+textarea {
+    background-color: #1F2937 !important;
+    color: white !important;
+    border-radius: 12px !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
-<style>
-
-/* Force text black */
-html, body, [class*="css"]  {
-    color: #111827 !important;
-}
-
-/* Labels */
-label {
-    color: #111827 !important;
-}
-
-/* Markdown text */
-p {
-    color: #111827 !important;
-}
-
-/* Sidebar text */
-section[data-testid="stSidebar"] * {
-    color: #111827 !important;
-}
-
-/* Input text */
-input, textarea {
-    color: #111827 !important;
-}
-
-/* Selectbox text */
-div[data-baseweb="select"] * {
-    color: #111827 !important;
-}
-
-/* Metrics */
-[data-testid="metric-container"] {
-    color: #111827 !important;
-}
-
-/* Table text */
-table {
-    color: #111827 !important;
-}
-
-</style>
 
 # -----------------------------------
 # Configure Gemini API Key
