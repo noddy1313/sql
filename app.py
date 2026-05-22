@@ -66,27 +66,37 @@ textarea {
     padding: 12px !important;
 }
 
-/* Buttons */
 .stButton > button {
+
     background: linear-gradient(
         to right,
-        #22C55E,
-        #16A34A
+        #ec4899,
+        #a855f7
     );
 
     color: white !important;
+
     border-radius: 14px;
+
     border: none;
+
     font-weight: bold;
+
     height: 3em;
+
+    transition: 0.3s ease;
 }
+
 
 /* Hover */
 .stButton > button:hover {
+
+    transform: scale(1.02);
+
     background: linear-gradient(
         to right,
-        #16A34A,
-        #15803D
+        #db2777,
+        #9333ea
     );
 }
 
