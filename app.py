@@ -26,39 +26,93 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Main background */
+/* Main App */
 .stApp {
-    background-color: #0E1117;
-    color: white;
+    background: linear-gradient(
+        to bottom right,
+        #F9FAFB,
+        #E5E7EB
+    );
 }
 
-/* Text area */
+/* Main Title */
+h1 {
+    color: #16A34A !important;
+    text-align: center;
+    font-weight: 800;
+}
+
+/* Subheaders */
+h2, h3 {
+    color: #111827 !important;
+}
+
+/* Text */
+p, label, div {
+    color: #374151;
+}
+
+/* Text Area */
 textarea {
-    border-radius: 10px !important;
-    background-color: #1E1E1E !important;
-    color: white !important;
+    background-color: white !important;
+    color: #111827 !important;
+    border-radius: 14px !important;
+    border: 1px solid #D1D5DB !important;
+    padding: 12px !important;
 }
 
-/* Button styling */
+/* Buttons */
 .stButton > button {
-    background-color: #4CAF50;
+    background: linear-gradient(
+        to right,
+        #22C55E,
+        #16A34A
+    );
+
     color: white;
-    border-radius: 12px;
-    height: 3em;
-    width: 100%;
-    font-size: 16px;
+    border-radius: 14px;
     border: none;
     font-weight: bold;
+    height: 3em;
 }
 
-/* Button hover */
+/* Hover */
 .stButton > button:hover {
-    background-color: #45a049;
+    background: linear-gradient(
+        to right,
+        #16A34A,
+        #15803D
+    );
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: #161B22;
+    background-color: white;
+    border-right: 1px solid #E5E7EB;
+}
+
+/* Cards */
+[data-testid="metric-container"] {
+    background-color: white;
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid #E5E7EB;
+}
+
+/* Dataframe */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Code Block */
+pre {
+    border-radius: 12px !important;
+}
+
+/* Horizontal Line */
+hr {
+    border: 1px solid #E5E7EB;
 }
 
 </style>
