@@ -26,30 +26,41 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Animated Background */
-..stApp {
+/* Animated Dynamic Background */
+.stApp {
 
     background: linear-gradient(
         -45deg,
-        #FDF2F8,
-        #FCE7F3,
-        #FBCFE8,
-        #FAE8FF
+        #fbc2eb,
+        #f9d5e5,
+        #fad0c4,
+        #fbcfe8,
+        #e9d5ff
     );
 
-    background-size: 400% 400%;
+    background-size: 500% 500%;
 
-    animation: gradientBG 12s ease infinite;
+    animation: gradientMove 15s ease infinite;
 }
-/* Background Animation */
-@keyframes gradientBG {
+
+
+/* Smooth Animation */
+@keyframes gradientMove {
 
     0% {
         background-position: 0% 50%;
     }
 
+    25% {
+        background-position: 50% 100%;
+    }
+
     50% {
         background-position: 100% 50%;
+    }
+
+    75% {
+        background-position: 50% 0%;
     }
 
     100% {
@@ -58,135 +69,85 @@ st.markdown("""
 }
 
 
-/* Main Title */
-h1 {
-    color: #16A34A !important;
-    text-align: center;
-    font-weight: 800;
+/* Glassmorphism Cards */
+[data-testid="metric-container"],
+[data-testid="stDataFrame"],
+pre {
+
+    background: rgba(255,255,255,0.6);
+
+    backdrop-filter: blur(10px);
+
+    border-radius: 16px;
+
+    border: 1px solid rgba(255,255,255,0.3);
+
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.08);
 }
 
-/* Subheaders */
-h2, h3 {
-    color: #111827 !important;
-}
-
-/* General Text */
-html, body, [class*="css"] {
-    color: #111827 !important;
-}
-
-/* Paragraph Text */
-p, label, div {
-    color: #111827 !important;
-}
 
 /* Text Area */
 textarea {
-    background-color: white !important;
-    color: #111827 !important;
+
+    background: rgba(255,255,255,0.7) !important;
+
+    backdrop-filter: blur(8px);
+
     border-radius: 16px !important;
-    border: 1px solid #D1D5DB !important;
-    padding: 14px !important;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
+
+    border: 1px solid rgba(255,255,255,0.4) !important;
+
+    color: #111827 !important;
 }
+
 
 /* Buttons */
 .stButton > button {
 
     background: linear-gradient(
         to right,
-        #22C55E,
-        #16A34A
+        #ec4899,
+        #a855f7
     );
 
     color: white !important;
 
-    border-radius: 14px;
-
     border: none;
+
+    border-radius: 14px;
 
     font-weight: bold;
 
-    height: 3em;
-
     transition: 0.3s ease;
 
-    box-shadow: 0px 4px 12px rgba(34,197,94,0.3);
+    box-shadow: 0px 6px 18px rgba(236,72,153,0.3);
 }
 
-/* Hover Effect */
+
+/* Hover */
 .stButton > button:hover {
 
-    transform: scale(1.02);
+    transform: scale(1.03);
 
     background: linear-gradient(
         to right,
-        #16A34A,
-        #15803D
+        #db2777,
+        #9333ea
     );
 }
+
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
 
-    background-color: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.5);
 
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
 
-    border-right: 1px solid #E5E7EB;
-}
-
-/* Sidebar Text */
-section[data-testid="stSidebar"] * {
-    color: #111827 !important;
-}
-
-/* Cards */
-[data-testid="metric-container"] {
-
-    background-color: rgba(255,255,255,0.8);
-
-    border-radius: 16px;
-
-    padding: 12px;
-
-    border: 1px solid #E5E7EB;
-
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
-}
-
-/* Dataframe */
-[data-testid="stDataFrame"] {
-
-    border-radius: 16px;
-
-    overflow: hidden;
-
-    background-color: white;
-}
-
-/* Code Block */
-pre {
-
-    border-radius: 14px !important;
-
-    border: 1px solid #E5E7EB !important;
-
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
-}
-
-/* Selectbox */
-div[data-baseweb="select"] * {
-    color: #111827 !important;
-}
-
-/* Horizontal Line */
-hr {
-    border: 1px solid #D1D5DB;
+    border-right: 1px solid rgba(255,255,255,0.3);
 }
 
 </style>
-""", unsafe_allow_html=True)
 
 
 # -----------------------------------
