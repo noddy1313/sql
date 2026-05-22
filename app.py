@@ -30,16 +30,11 @@ st.markdown("""
 ..stApp {
 
     background: linear-gradient(
-        -45deg,
-        #F5F3FF,
+        135deg,
         #EDE9FE,
         #DDD6FE,
-        #FAF5FF
+        #C4B5FD
     );
-
-    background-size: 400% 400%;
-
-    animation: gradientBG 15s ease infinite;
 }
 /* Background Animation */
 @keyframes gradientBG {
