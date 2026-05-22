@@ -26,98 +26,86 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Main App */
+/* Main background */
 .stApp {
-    background: linear-gradient(
-        to bottom right,
-        #F9FAFB,
-        #E5E7EB
-    );
-}
-
-/* Main Title */
-h1 {
-    color: #16A34A !important;
-    text-align: center;
-    font-weight: 800;
-}
-
-/* Subheaders */
-h2, h3 {
-    color: #111827 !important;
-}
-
-/* Text */
-p, label, div {
-    color: #374151;
-}
-
-/* Text Area */
-textarea {
-    background-color: white !important;
-    color: #111827 !important;
-    border-radius: 14px !important;
-    border: 1px solid #D1D5DB !important;
-    padding: 12px !important;
-}
-
-/* Buttons */
-.stButton > button {
-    background: linear-gradient(
-        to right,
-        #22C55E,
-        #16A34A
-    );
-
+    background-color: #0E1117;
     color: white;
-    border-radius: 14px;
+}
+
+/* Text area */
+textarea {
+    border-radius: 10px !important;
+    background-color: #1E1E1E !important;
+    color: white !important;
+}
+
+/* Button styling */
+.stButton > button {
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 12px;
+    height: 3em;
+    width: 100%;
+    font-size: 16px;
     border: none;
     font-weight: bold;
-    height: 3em;
 }
 
-/* Hover */
+/* Button hover */
 .stButton > button:hover {
-    background: linear-gradient(
-        to right,
-        #16A34A,
-        #15803D
-    );
+    background-color: #45a049;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background-color: white;
-    border-right: 1px solid #E5E7EB;
-}
-
-/* Cards */
-[data-testid="metric-container"] {
-    background-color: white;
-    border-radius: 12px;
-    padding: 10px;
-    border: 1px solid #E5E7EB;
-}
-
-/* Dataframe */
-[data-testid="stDataFrame"] {
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-/* Code Block */
-pre {
-    border-radius: 12px !important;
-}
-
-/* Horizontal Line */
-hr {
-    border: 1px solid #E5E7EB;
+    background-color: #161B22;
 }
 
 </style>
 """, unsafe_allow_html=True)
+<style>
 
+/* Force text black */
+html, body, [class*="css"]  {
+    color: #111827 !important;
+}
+
+/* Labels */
+label {
+    color: #111827 !important;
+}
+
+/* Markdown text */
+p {
+    color: #111827 !important;
+}
+
+/* Sidebar text */
+section[data-testid="stSidebar"] * {
+    color: #111827 !important;
+}
+
+/* Input text */
+input, textarea {
+    color: #111827 !important;
+}
+
+/* Selectbox text */
+div[data-baseweb="select"] * {
+    color: #111827 !important;
+}
+
+/* Metrics */
+[data-testid="metric-container"] {
+    color: #111827 !important;
+}
+
+/* Table text */
+table {
+    color: #111827 !important;
+}
+
+</style>
 
 # -----------------------------------
 # Configure Gemini API Key
